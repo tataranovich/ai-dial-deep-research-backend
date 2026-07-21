@@ -19,5 +19,5 @@ jobs:
       python-version: "3.13"
       python-package-manager: "uv"
       uv-version: "0.11.28"
-      ort-enabled: true # ORT doesn't support UV
+      ort-enabled: false # ORT doesn't support UV
     secrets: inherit
