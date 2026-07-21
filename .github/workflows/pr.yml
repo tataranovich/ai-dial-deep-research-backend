@@ -17,5 +17,6 @@ jobs:
     uses: tataranovich/ai-dial-ci/.github/workflows/python_docker_pr.yml@main
     with:
       python-version: "3.13"
-      poetry-version: "2.3.2"
+      python-package-manager: "uv"
+      uv-version: "0.11.28"
     secrets: inherit

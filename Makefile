@@ -1,4 +1,4 @@
-POETRY ?= poetry
+UV ?= uv
 SRC_DIRS = src tests scripts
 MYPY_DIRS = src scripts
 
@@ -19,7 +19,7 @@ OPIK_COMPOSE = $(OPIK_DIR)/deployment/docker-compose/docker-compose.yaml
 #   end of a target line marks it as a USER-facing documented target. The awk
 #   regex below matches `##` specifically, so:
 #     - `install: deps ## Install everything`   → appears in `make help`
-#     - `check_poetry: ...` (no `##`)           → hidden; it's an internal helper
+#     - `check_uv: ...` (no `##`)               → hidden; it's an internal helper
 #   To add a new target to the help output, just tack on ` ## one-line description`.
 #
 # The awk one-liner is a common snippet, explained inline:
@@ -36,41 +36,31 @@ OPIK_COMPOSE = $(OPIK_DIR)/deployment/docker-compose/docker-compose.yaml
 help: ## Show available make targets
 	@awk 'BEGIN {FS = ":.*##"; printf "Available targets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-check_poetry:
-	@command -v $(POETRY) >/dev/null 2>&1 || { \
-		echo "Error: '$(POETRY)' not found on PATH."; \
-		echo "Install Poetry: https://python-poetry.org/docs/#installation"; \
+check_uv:
+	@command -v $(UV) >/dev/null 2>&1 || { \
+		echo "Error: '$(UV)' not found on PATH."; \
+		echo "Install uv: curl -LsSf https://astral.sh/uv/install.sh | sh"; \
 		exit 1; \
 	}
 
-# `install` installs runtime + dev deps WITHOUT optional extras — the same package set the
-# production image ships (its Dockerfile uses `poetry install --only main`). lint/test/format
-# depend on this, so CI validates against the image's dependency set and catches code that
-# breaks when an optional extra (opik) is absent. mypy tolerates the missing opik via the
-# `opik.*` override in pyproject.toml.
-install: check_poetry ## Install runtime + dev dependencies (no optional extras) from poetry.lock
-	$(POETRY) install
-
-# `install-all` adds the optional extras (the heavy opik/tracing tree) on top of `install`.
-# Use it for local development with LLM tracing; it is NOT what CI or the image use.
-install-all: check_poetry ## Install everything incl. optional extras (opik/tracing)
-	$(POETRY) install --all-extras
+install: check_uv ## Install all dependencies (runtime + dev) from uv.lock
+	$(UV) sync
 
 lint: install ## Run ruff, mypy, formatting checks (black, isort), then the schema drift check
-	$(POETRY) run ruff check $(SRC_DIRS)
-	$(POETRY) run mypy --show-error-codes $(MYPY_DIRS)
-	$(POETRY) run black $(SRC_DIRS) --check
-	$(POETRY) run isort $(SRC_DIRS) --check-only --diff
-	$(POETRY) run python scripts/dump_app_schema.py --check
+	$(UV) run ruff check $(SRC_DIRS)
+	$(UV) run mypy --show-error-codes $(MYPY_DIRS)
+	$(UV) run black $(SRC_DIRS) --check
+	$(UV) run isort $(SRC_DIRS) --check-only --diff
+	$(UV) run python scripts/dump_app_schema.py --check
 
 format: install ## Auto-fix everything auto-fixable: ruff, black, isort, regenerate the schema artifact
-	$(POETRY) run ruff check $(SRC_DIRS) --fix
-	$(POETRY) run black $(SRC_DIRS)
-	$(POETRY) run isort $(SRC_DIRS)
-	$(POETRY) run python scripts/dump_app_schema.py
+	$(UV) run ruff check $(SRC_DIRS) --fix
+	$(UV) run black $(SRC_DIRS)
+	$(UV) run isort $(SRC_DIRS)
+	$(UV) run python scripts/dump_app_schema.py
 
 test: install ## Run pytest
-	$(POETRY) run pytest tests
+	$(UV) run pytest tests
 
 ## -------- infra -------- ##
 
@@ -79,7 +69,7 @@ infra-config: install ## Build the local DIAL core config: seed applications.jso
 		cp dial_conf/core/applications-template.json dial_conf/core/applications.json; \
 		echo "seeded dial_conf/core/applications.json from the template"; \
 	}
-	$(POETRY) run python scripts/generate_dial_config.py
+	$(UV) run python scripts/generate_dial_config.py
 
 infra-up: ## Start the infra services (DIAL core, chat UI, themes, redis) detached
 	docker compose up -d
@@ -99,7 +89,7 @@ infra-cleanup: ## Stop infra and remove volumes (destroys DIAL core data + logs)
 APP_COMPOSE = -f docker-compose.yml -f docker-compose.app.yml
 
 app: install ## Run the app on the host via uvicorn (infra must already be up)
-	$(POETRY) run python -m dial_deep_research
+	$(UV) run python -m dial_deep_research
 
 app-build: ## Build the app Docker image
 	docker compose $(APP_COMPOSE) build deep-research

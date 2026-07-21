@@ -25,5 +25,6 @@ jobs:
     with:
       promote: ${{ github.event_name == 'workflow_dispatch' && inputs.promote }}
       python-version: "3.13"
-      poetry-version: "2.3.2"
+      python-package-manager: "uv"
+      uv-version: "0.11.28"
     secrets: inherit
