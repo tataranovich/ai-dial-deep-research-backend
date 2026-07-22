@@ -12,6 +12,7 @@
     </a>
 </h4>
 
+
 A DIAL-native **deep research** application: a LangChain/LangGraph agent that connects to a
 generic-RAG MCP server, clarifies the user's query, aligns on a research plan, runs a
 research loop grounded in the MCP tools, and streams progress to DIAL as timed stages.
