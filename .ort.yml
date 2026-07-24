@@ -102,7 +102,7 @@ resolutions:
     - message: ".*PyPI::referencing:0\\..*"
       reason: "CANT_FIX_EXCEPTION"
       comment: "MIT License: https://github.com/python-jsonschema/referencing/blob/main/COPYING"
-    - message: ".*PyPI::rpds-py:2026\\..*"
+    - message: ".*PyPI::rpds-py:0\\..*"
       reason: "CANT_FIX_EXCEPTION"
       comment: "MIT License: https://github.com/crate-py/rpds/blob/main/LICENSE"
 
