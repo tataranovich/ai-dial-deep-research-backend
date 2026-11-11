@@ -28,6 +28,7 @@ jobs:
       promote: ${{ github.event_name == 'workflow_dispatch' && inputs.promote }}
       python-version: "3.13"
       poetry-version: "2.3.2"
+      platforms: linux/amd64,linux/arm64
       code-checks-enabled: false
       ort-enabled: false
     secrets: inherit
