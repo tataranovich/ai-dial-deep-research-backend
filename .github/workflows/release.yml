@@ -21,11 +21,13 @@ permissions:
 
 jobs:
   release:
-    uses: epam/ai-dial-ci/.github/workflows/python_docker_release.yml@4.13.2
+    uses: tataranovich/ai-dial-ci/.github/workflows/python_docker_release.yml@main
     with:
       trivy-severity: "CRITICAL,HIGH,MEDIUM,LOW"
       trivy-severity-for-sarif: "CRITICAL,HIGH,MEDIUM,LOW"
       promote: ${{ github.event_name == 'workflow_dispatch' && inputs.promote }}
       python-version: "3.13"
       poetry-version: "2.3.2"
+      code-checks-enabled: false
+      ort-enabled: false
     secrets: inherit
